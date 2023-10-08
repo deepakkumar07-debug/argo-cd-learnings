@@ -61,3 +61,16 @@ Infrastructure code with version control pull requests and CI/CD pipeline
 5. Simple Project 
     * where we deploy argo cd and setup a fully automated cd pipeline for kubernetes
      configuration changes to get some practical experience with ArgoCd
+
+
+## CD workflow with Argo Cd
+1. Deploy ArgoCd in k8s cluster
+2. configure ArgoCD to track git repository
+3. ArgoCD monitors for any changes and applies automatically
+
+
+![cd-workflow](/screenshots/cd-workflow.png)
+
+# Best Practice for Git Repository
+It is recommended to keep separate git repository for application source code and applicaiton configuration(k8s manifest file)
+![best-practice-for-git-repo](/screenshots/best-practice-for-git-repo.png)
