@@ -139,7 +139,7 @@ spec:
   source:
     repoURL: https://github.com/deepakkumar07-debug/argo-cd-learnings.git
     targetRevision: HEAD # always the last commit
-    path: dev
+    path: argocd-app-config/dev
   destination:
     server: https://kubernetes.default.svc # internal service name for k8s api server
     namespace: myapp # which namespace argocd will apply the changes from git repo (i.e) apply to myapp namespace
