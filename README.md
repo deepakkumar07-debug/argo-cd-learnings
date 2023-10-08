@@ -74,3 +74,16 @@ Infrastructure code with version control pull requests and CI/CD pipeline
 # Best Practice for Git Repository
 It is recommended to keep separate git repository for application source code and applicaiton configuration(k8s manifest file)
 ![best-practice-for-git-repo](/screenshots/best-practice-for-git-repo.png)
+
+# why separate git repository
+if we want to update any application configuration we can only made changes to that repository alone we dont
+have to build entire applicaition ci/cd pipeline which includes application frontend and backend code that has not changed
+![separate-git-repo](/screenshots/separate-git-repo.png)
+
+![separate-git-repo-1](/screenshots/separate-git-repo-1.png)
+
+so the Jenkins CI pipeline will update the deployment.yaml file in a separate git repository where the k8s manifest files are for the application
+ans as soon as configuration file changes in the git repository argocd in cluster will immediately know about it (pull those changes)
+so it will pull and apply those changes automatically in the cluster.
+
+![argo-cd flow](/screenshots/argocd-flow.png)
