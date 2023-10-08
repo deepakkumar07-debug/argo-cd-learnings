@@ -87,3 +87,37 @@ ans as soon as configuration file changes in the git repository argocd in cluste
 so it will pull and apply those changes automatically in the cluster.
 
 ![argo-cd flow](/screenshots/argocd-flow.png)
+
+
+# Argo cd supports k8s manifest files
+K8s manifest can be defined in different ways
+*  kubernetes yaml file
+*  Helm Charts
+*  Kustomize.io
+* Template files that generates k8s mainfests yaml
+
+
+Git repository that is tracked and synced by ArgoCD which is GitOps tools sometimes also called git repository,
+if image version is upated in deployment yaml file by jenkins or any ci pipeline tool or developer ArgoCD kicks in to apply those changes immediately
+
+
+![ci-cid](/screenshots/splitting-ci-cd.png)
+
+we can still have an automated ci cd pipeline but with a separation of concerns where different teams are responsible for different parts of that full pipeline
+
+
+
+
+# Installing Argo cd
+
+[ArgoCD Installtion](https://argo-cd.readthedocs.io/en/stable/getting_started/#1-install-argo-cd)
+
+
+
+
+    kubectl create namespace argocd
+    kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+## Getting ArgoCd Admin ui password
+
+    kubectl get secrets -n argocd argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 --decode
