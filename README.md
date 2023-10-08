@@ -121,3 +121,45 @@ we can still have an automated ci cd pipeline but with a separation of concerns 
 ## Getting ArgoCd Admin ui password
 
     kubectl get secrets -n argocd argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 --decode
+
+
+## Configure ArgoCD with "A pplication" CRD
+
+`application.yaml`
+
+```yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-argo-application
+  namespace: argocd
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/deepakkumar07-debug/argo-cd-learnings.git
+    targetRevision: HEAD # always the last commit
+    path: dev
+  destination:
+    server: https://kubernetes.default.svc # internal service name for k8s api server
+    namespace: myapp # which namespace argocd will apply the changes from git repo (i.e) apply to myapp namespace
+
+  # if not myapp namespace exists in cluster
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+
+    #  enable automatic track and sync
+    # this automate attribute will configure argoCD to pull the changes in every 3 minutes,
+    # if we dont want this dealy, we can configure a Git webhook integration between git repo and argocd.
+    automated:
+      # enable automatic self-healing
+      selfHeal: true # undo or overwrites any manual changes with the git repository state instead.
+      # enable automatic pruning, by default, automatic sync will not delete resources(deleting deployment,service)
+      prune: true
+
+```
+
+how to synchroinze the above changes, for now we have programmed everything in this yaml. 
+only first time we need to apply this application.yaml file manully
+for now, if we have ci/cd we dont have to do that also.

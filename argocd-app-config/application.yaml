@@ -8,16 +8,22 @@ spec:
 
   source:
     repoURL: https://gitlab.com/nanuchi/argocd-app-config.git
-    targetRevision: HEAD
+    targetRevision: HEAD # always the last commit
     path: dev
-  destination: 
-    server: https://kubernetes.default.svc
-    namespace: myapp
+  destination:
+    server: https://kubernetes.default.svc # internal service name for k8s api server
+    namespace: myapp # which namespace argocd will apply the changes from git repo (i.e) apply to myapp namespace
 
+  # if not myapp namespace exists in cluster
   syncPolicy:
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
 
+    #  enable automatic track and sync
+    # this automate attribute will configure argoCD to pull the changes in every 3 minutes,
+    # if we dont want this dealy, we can configure a Git webhook integration between git repo and argocd.
     automated:
-      selfHeal: true
+      # enable automatic self-healing
+      selfHeal: true # undo or overwrites any manual changes with the git repository state instead.
+      # enable automatic pruning, by default, automatic sync will not delete resources(deleting deployment,service)
       prune: true
