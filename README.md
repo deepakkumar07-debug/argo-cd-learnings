@@ -121,7 +121,11 @@ we can still have an automated ci cd pipeline but with a separation of concerns 
 ## Getting ArgoCd Admin ui password
 
     kubectl get secrets -n argocd argocd-initial-admin-secret -o json | jq -r '.data.password' | base64 --decode
+    0TUvmbeA725JsHy3
 
+## Port forward
+
+    kubectl port-forward  -n argocd services/argocd-server  8080:443
 
 ## Configure ArgoCD with "A pplication" CRD
 
@@ -163,3 +167,153 @@ spec:
 how to synchroinze the above changes, for now we have programmed everything in this yaml. 
 only first time we need to apply this application.yaml file manully
 for now, if we have ci/cd we dont have to do that also.
+
+
+## RBAC - Role based Access control
+Role based access control is  control over user groups  and access to  resources based on  a defined role.
+1. Role Assignment
+2. Role Authorization
+3. transaction authorization.
+
+
+## ArgoCD User Management
+- by default argocd comes with default one user which is an admin user has all rights to all resources.
+
+
+## Login to argocd cli
+
+  argocd login 127.0.0.1:8080 --username admin --insecure
+
+## list apps using argocd
+
+    argocd app list
+
+## list accounts
+
+    argocd account list
+
+## Argocd configmaps
+
+`argocd-cm` and `argocd-rbac-cm` are mainly focused on creating and managing users
+argocd-cm used to create and delete users
+argocd-rbac-cm used to give any sort of permission and access
+
+
+## Create user in argocd
+
+    kubectl edit cm -n argocd argocd-cm
+
+add following user entries 
+
+```yaml
+data:
+ accounts.akash: apiKey, login
+ accounts.deepak: login
+ accounts.dinesh: login
+```
+
+verify 
+
+  argocd account list
+
+```code
+NAME    ENABLED  CAPABILITIES
+admin   true     login
+akash   true     apiKey, login
+deepak  true     login
+dinesh  true     login
+```
+
+
+## update password
+ argocd account update-password --account askash
+
+ it prompts argocd admin passwrord then akash users new password
+
+
+by default created users have no permission so we have to set with `argocd-rbac-cm`
+
+## RBAC in action
+edit rbac configmap
+
+      kubectl edit configmaps -n argocd argocd-rbac-cm
+
+
+```yaml
+apiVersion: v1
+data:
+  policy.csv: |
+    p, role:devops, applications, *, *, allow
+    #p, role:developer, applications, get, *, allow
+    # only nginx form default namespace  application allow
+    p, role:developer, applications, *, default/nginx, allow
+    # role:name, argocd resource name, <action get/update/create> <any specific object like repo name project name defualt> allow
+    p, role:developer, repositories, get, *, allow
+    g, dinesh, role:devops
+    g, deepak, role:developer
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"ConfigMap","metadata":{"annotations":{},"labels":{"app.kubernetes.io/name":"argocd-rbac-cm","app.kubernetes.io/part-of":"argocd"},"name":"argocd-rbac-cm","namespace":"argocd"}}
+  creationTimestamp: "2023-10-08T13:27:43Z"
+  labels:
+    app.kubernetes.io/name: argocd-rbac-cm
+    app.kubernetes.io/part-of: argocd
+  name: argocd-rbac-cm
+  namespace: argocd
+  resourceVersion: "22220"
+  uid: 3ec9797f-fbed-4baf-8c1e-19ef100853a8
+
+```
+p, role:devops, applications, *, *, allow
+p => policy
+role: name,
+resource: applications, projects, repositories
+first * => action get,create,update
+second * => any specific resource
+allow
+
+
+## Explanation
+
+```yaml
+data:
+  policy.csv: |
+    # Permission (Policy) Definition
+    p, role:<role_name>, <resource_type>, <action>, <resource_namespace>/<resource_name>, allow
+
+    # Group Membership Definition
+    g, <user_or_group_name>, role:<role_name>
+```
+
+### Key Elements:
+
+1. p: Permission (policy) definition.
+2. g: Group membership definition.
+3. role:<role_name>: Specifies the role or permission name.
+4. <resource_type>: Specifies the type of resource (e.g., applications).
+5. <action>: Indicates the action or permission (e.g., sync, get, delete).
+6. <resource_namespace>/<resource_name>: Specifies the resource, including its namespace and name.
+7. allow: Grants permission.
+8. deny: Denies permission.
+
+
+
+Usage Examples:
+
+Define a permission to allow synchronization of an application:
+
+```bash
+p, role:nginx, applications, sync, default/nginx, allow
+
+```
+Define a group membership, adding a user to the "nginx" role:
+
+```bash
+g, motoskia, role:nginx
+
+```
+
+
+In summary, this RBAC policy CSV format allows you to define policies, roles, and group memberships in a structured manner, making it easier to manage access control in ArgoCD. You can use this cheat sheet as a reference when working with ArgoCD RBAC policies in this format.
